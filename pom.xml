@@ -11,8 +11,8 @@
 	<groupId>com.example</groupId>
 	<artifactId>welcome-demo</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>welcome-demo</name>
-	<description>A tiny welcome demo of Spring Boot and in-memory DBs</description>
+	<name>voting_system-demo</name>
+	<description>A tiny voting_system demo of Spring Boot and in-memory DBs</description>
 	<properties>
 		<java.version>11</java.version>
 	</properties>

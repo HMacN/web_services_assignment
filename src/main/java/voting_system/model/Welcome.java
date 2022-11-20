@@ -1,6 +1,6 @@
 // A resource, living in the model sub-package.
 
-package welcome.model;
+package voting_system.model;
 
 public class Welcome {
 

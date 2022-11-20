@@ -1,7 +1,7 @@
 // Implementation of the business logic, living in the service sub-package.
 // Discoverable for auto-configuration, thanks to the @Component annotation.
 
-package welcome.service;
+package voting_system.service;
 
 import java.util.LinkedList;
 import java.util.Map;
@@ -10,10 +10,11 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
-import welcome.model.*;
+import voting_system.model.*;
 
 @Component
-public class WelcomeServiceImpl implements WelcomeService {
+public class VotingServiceImpl implements VotingService
+{
 
     // Very simple in-memory database; key is the lang field of class Welcome.
     // We have to be careful with this 'database'. In order to avoid objects
@@ -21,7 +22,7 @@ public class WelcomeServiceImpl implements WelcomeService {
     // before insertion and retrieval.
     private Map<String, Welcome> db;
 
-    public WelcomeServiceImpl() {
+    public VotingServiceImpl() {
         db = new HashMap<>();
     }
 

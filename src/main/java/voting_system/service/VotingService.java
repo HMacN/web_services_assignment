@@ -1,12 +1,13 @@
 // An interface to the business logic, living in the service sub-package.
 
-package welcome.service;
+package voting_system.service;
 
 import java.util.List;
 
-import welcome.model.*;
+import voting_system.model.*;
 
-public interface WelcomeService {
+public interface VotingService
+{
 
     // Adds a welcome to the database.
     void addWelcome(Welcome welcome) throws WelcomeForThisLanguageAlreadyExistsException;

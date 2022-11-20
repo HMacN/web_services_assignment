@@ -2,31 +2,32 @@
 // Must live in the top package so that @SpringBootApplication annotation
 // can find all the components.
 
-package welcome;
+package voting_system;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
-import welcome.model.*;
-import welcome.service.*;
+import voting_system.model.*;
+import voting_system.service.*;
 
 @SpringBootApplication
-public class WelcomeDemoApplication {
+public class VotingSystemApplication
+{
 
     public static void main(String[] args) {
-        SpringApplication.run(WelcomeDemoApplication.class, args);
+        SpringApplication.run(VotingSystemApplication.class, args);
     }
 
     // The initDB() @Bean is run automatically on startup, before the
     // @RestController is started.
     // The body could access command line argument args (but doesn't).
-    // The fact that initDB() requires a WelcomeService argument tells Spring
-    // to auto-configure and pass a WelcomeService instance, which initDB()
+    // The fact that initDB() requires a VotingService argument tells Spring
+    // to auto-configure and pass a VotingService instance, which initDB()
     // amends by adding more Welcome instances.
     @Bean
-    public CommandLineRunner initDB(WelcomeService ws) {
+    public CommandLineRunner initDB(VotingService ws) {
         return (args) -> {
             ws.addWelcome(new Welcome("en", "Welcome"));
             ws.addWelcome(new Welcome("fr", "Bienvenue"));

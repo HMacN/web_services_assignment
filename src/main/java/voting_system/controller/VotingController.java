@@ -2,31 +2,32 @@
 // Lives in sub-package controller, marked with the @RestController annotation
 // for auto-configuration; the @CrossOrigin annotation enables CORS.
 
-package welcome.controller;
+package voting_system.controller;
 
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 
-import welcome.model.*;
-import welcome.service.*;
+import voting_system.model.*;
+import voting_system.service.*;
 
 import java.util.List;
 
 @RestController
 @CrossOrigin
-public class WelcomeController {
+public class VotingController
+{
 
-    // The WelcomeController depends on the WelcomeService, so it needs to keep a reference to it.
-    private WelcomeService ws;
+    // The VotingController depends on the VotingService, so it needs to keep a reference to it.
+    private VotingService ws;
 
-    // The fact that the constructor for the WelcomeController requires a
-    // WelcomService argument tells Spring to auto-configure a WelcomeService
+    // The fact that the constructor for the VotingController requires a
+    // WelcomService argument tells Spring to auto-configure a VotingService
     // and pass it to the constructor. This is called "Dependency Injection",
     // and it (a) saves boilerplate code, and (b) makes it easy to swap
-    // components. (We can change the WelcomeService implementation without
+    // components. (We can change the VotingService implementation without
     // changing any code in the rest of the system.)
-    public WelcomeController(WelcomeService ws) {
+    public VotingController(VotingService ws) {
         this.ws = ws;
     }
 
