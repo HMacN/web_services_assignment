@@ -59,6 +59,11 @@ public class WelcomeController {
 
         ws.updateWelcome(welcome);
     }
+
+    @DeleteMapping("/ding/{lang}")
+    public void deleteWelcome(@PathVariable String lang) throws LanguageDoesNotExistException {
+        ws.removeWelcome(lang);
+    }
 }
 
 @ControllerAdvice

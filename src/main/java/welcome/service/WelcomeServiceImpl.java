@@ -72,7 +72,7 @@ public class WelcomeServiceImpl implements WelcomeService {
         return welcome;
     }
 
-    // Not yet implemented.
+    // Return a list of all welcomes.
     public List<Welcome> getAllWelcomes() {
         //throw new UnsupportedOperationException();
 
@@ -91,8 +91,15 @@ public class WelcomeServiceImpl implements WelcomeService {
         return safeToReturnWelcomes;
     }
 
-    // Not yet implemented.
-    public void removeWelcome(String lang) {
-        throw new UnsupportedOperationException();
+    // Removes an existing welcome.
+    public void removeWelcome(String lang) throws LanguageDoesNotExistException {
+        // Check for any null values.
+        if (lang != null ) {
+            if (this.db.containsKey(lang)) {
+                this.db.remove(lang);
+            } else {
+                throw new LanguageDoesNotExistException();
+            }
+        }
     }
 }

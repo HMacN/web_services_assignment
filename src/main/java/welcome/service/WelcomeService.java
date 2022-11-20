@@ -31,6 +31,6 @@ public interface WelcomeService {
     List<Welcome> getAllWelcomes();
 
     // Removes the welcome for language lang from the database.
-    void removeWelcome(String lang);
+    void removeWelcome(String lang) throws LanguageDoesNotExistException;
 
 }

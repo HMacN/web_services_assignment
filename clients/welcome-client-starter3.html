@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Simple CRUD Client for the Welcome Service</title>
+  </head>
+  <body>
+    <div>
+      <input type="text" id="guest_name" placeholder="guest name"/>
+      <select id="guest_lang">
+        <option value="en">en</option>
+      </select>
+      <button type="button" onclick="ding_request();">ding</button>
+    </div>
+    <hr/>
+    <div>
+      <input type="text" id="lang" placeholder="language code"/>
+      <input type="text" id="msg" placeholder="welcome phrase"/>
+      <button type="button" onclick="create_request();">create</button>
+      <button type="button" onclick="update_request();">update</button>
+      <button type="button" onclick="delete_request();">delete</button>
+      <button type="button" onclick="read_all_request();">read all</button>
+    </div>
+    <hr/>
+    <div id="output">
+    </div>
+
+    <script>
+      function ding_request() {
+        const output = document.getElementById('output');
+        const name_val = document.getElementById('guest_name').value;
+        const lang_val = document.getElementById('guest_lang').value;
+        let url = 'http://localhost:8080/ding/'+ lang_val;
+        if (name_val != '') {
+          url += '?name=' + name_val;
+        }
+        fetch(url).
+          then(response => response.json()).
+          then(data => output.innerHTML = JSON.stringify(data)).
+          catch(error => output.innerHTML = error);
+      }
+
+      function read_all_request() {
+        let url = 'http://localhost:8080/ding'
+        fetch(url, {method: 'GET'}).
+          then(response => response.json()).
+          then(data => output.innerHTML = JSON.stringify(data)).
+          catch(error => output.innerHTML = error);
+      }
+    </script>
+  </body>
+</html>
