@@ -4,11 +4,7 @@
 
 package welcome.controller;
 
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 
@@ -48,4 +44,20 @@ public class WelcomeController {
         return ws.getAllWelcomes();
     }
 
+    @PostMapping("/ding")
+    public void postNewWelcome(@RequestBody Welcome newWelcome) throws WelcomeForThisLanguageAlreadyExistsException {
+        System.out.println(newWelcome); //todo remove
+        ws.addWelcome(newWelcome);
+    }
+}
+
+@ControllerAdvice
+class LanguageAlreadyExistsAdvice {
+
+    @ResponseBody
+    @ExceptionHandler(value = WelcomeForThisLanguageAlreadyExistsException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public WelcomeForThisLanguageAlreadyExistsException languageNotFoundHandler(WelcomeForThisLanguageAlreadyExistsException ex) {
+        return ex;
+    }
 }
