@@ -47,6 +47,43 @@
           then(data => output.innerHTML = JSON.stringify(data)).
           catch(error => output.innerHTML = error);
       }
+
+      function create_request() {
+        let url = 'http://localhost:8080/ding'
+        let lang = document.getElementById('lang').value;
+        let msg = document.getElementById('msg').value;
+        let data = {"lang":lang, "msg":msg};
+
+        transmit_data(url, data, 'POST');
+      }
+
+      function update_request() {
+        let lang = document.getElementById('lang').value;
+        let msg = document.getElementById('msg').value;
+        let url = 'http://localhost:8080/ding/' + lang;
+        let data = {"lang":lang, "msg":msg};
+
+        transmit_data(url, data, 'PUT');
+      }
+
+      function delete_request() {
+        let lang = document.getElementById('lang').value;
+        let msg = document.getElementById('msg').value;
+        let url = 'http://localhost:8080/ding/' + lang;
+        let data = {"lang":lang, "msg":msg};
+
+        transmit_data(url, data, 'DELETE');
+      }
+
+      function transmit_data(url, data, mode) {
+        fetch(url, {
+          method: mode,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        });
+      }
     </script>
   </body>
 </html>
