@@ -22,6 +22,9 @@
       <button type="button" onclick="read_all_request();">read all</button>
     </div>
     <hr/>
+    <div id="status_code">
+      code
+    </div>
     <div id="output">
     </div>
 
@@ -34,18 +37,24 @@
         if (name_val != '') {
           url += '?name=' + name_val;
         }
-        fetch(url).
-          then(response => response.json()).
-          then(data => output.innerHTML = JSON.stringify(data)).
-          catch(error => output.innerHTML = error);
+        fetch(url)
+          .then( async (response) => {
+            let data = await response.json();
+            output.innerHTML = JSON.stringify(data);
+            status_code.innerHTML = response.status;
+          })
+          .catch(error => output.innerHTML = error);
       }
 
       function read_all_request() {
         let url = 'http://localhost:8080/ding'
-        fetch(url, {method: 'GET'}).
-          then(response => response.json()).
-          then(data => output.innerHTML = JSON.stringify(data)).
-          catch(error => output.innerHTML = error);
+        fetch(url, {method: 'GET'})
+          .then( async (response) => {
+            let data = await response.json();
+            output.innerHTML = JSON.stringify(data);
+            status_code.innerHTML = response.status;
+          })
+          .catch(error => output.innerHTML = error);
       }
 
       function create_request() {
@@ -82,7 +91,13 @@
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(data),
-        });
+        })
+        .then( async (response) => {
+          let data = await response.json();
+          output.innerHTML = JSON.stringify(data);
+          status_code.innerHTML = response.status;
+        })
+        .catch(error => output.innerHTML = error);
       }
     </script>
   </body>
