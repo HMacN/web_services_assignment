@@ -8,8 +8,11 @@ import welcome.model.*;
 
 public interface WelcomeService {
 
-    // Adds a welcome to the database, or overwrites an existing one.
+    // Adds a welcome to the database.
     void addWelcome(Welcome welcome) throws WelcomeForThisLanguageAlreadyExistsException;
+
+    //Updates a welcome in the database.
+    void updateWelcome(Welcome welcome) throws LanguageDoesNotExistException;
 
     // Returns true if there is a welcome in language lang.
     default boolean hasWelcome(String lang) {

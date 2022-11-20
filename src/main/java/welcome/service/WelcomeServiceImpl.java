@@ -25,16 +25,32 @@ public class WelcomeServiceImpl implements WelcomeService {
         db = new HashMap<>();
     }
 
-    // Adds a welcome to the database, or overwrites an existing one.
+    // Adds a welcome to the database.
     public void addWelcome(Welcome welcome) throws WelcomeForThisLanguageAlreadyExistsException
     {
-        System.out.println(welcome.getLang());  //todo remove
-
+        // Check for any null values.
         if (welcome != null && welcome.getLang() != null) {
+            // Check language welcome does not already exist.
             if (this.db.containsKey(welcome.getLang())) {
                 throw new WelcomeForThisLanguageAlreadyExistsException();
             }
             
+            // copying welcome to isolate objects in the database from changes
+            welcome = new Welcome(welcome);
+            db.put(welcome.getLang(), welcome);
+        }
+    }
+
+    // Modifies a welcome in the database.
+    public void updateWelcome(Welcome welcome) throws LanguageDoesNotExistException
+    {
+        // Check for any null values.
+        if (welcome != null && welcome.getLang() != null) {
+            // Check language welcome does not already exist.
+            if (!this.db.containsKey(welcome.getLang())) {
+                throw new LanguageDoesNotExistException();
+            }
+
             // copying welcome to isolate objects in the database from changes
             welcome = new Welcome(welcome);
             db.put(welcome.getLang(), welcome);

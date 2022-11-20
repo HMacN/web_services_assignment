@@ -46,8 +46,18 @@ public class WelcomeController {
 
     @PostMapping("/ding")
     public void postNewWelcome(@RequestBody Welcome newWelcome) throws WelcomeForThisLanguageAlreadyExistsException {
-        System.out.println(newWelcome); //todo remove
         ws.addWelcome(newWelcome);
+        ws.addWelcome(newWelcome);
+    }
+
+    @PutMapping("/ding/{lang}")
+    public void putNewWelcome(@RequestBody Welcome welcome, @PathVariable String lang) throws LanguageDoesNotExistException, LanguagesDontMatchException {
+        // Check languages match
+        if (!welcome.getLang().equals(lang)) {
+            throw new LanguagesDontMatchException();
+        }
+
+        ws.updateWelcome(welcome);
     }
 }
 
@@ -58,6 +68,28 @@ class LanguageAlreadyExistsAdvice {
     @ExceptionHandler(value = WelcomeForThisLanguageAlreadyExistsException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public WelcomeForThisLanguageAlreadyExistsException languageNotFoundHandler(WelcomeForThisLanguageAlreadyExistsException ex) {
+        return ex;
+    }
+}
+
+@ControllerAdvice
+class LanguageDoesNotExistAdvice {
+
+    @ResponseBody
+    @ExceptionHandler(value = LanguageDoesNotExistException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public LanguageDoesNotExistException languageNotFoundHandler(LanguageDoesNotExistException ex) {
+        return ex;
+    }
+}
+
+@ControllerAdvice
+class LanguagesDontMatchAdvice {
+
+    @ResponseBody
+    @ExceptionHandler(value = LanguagesDontMatchException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public LanguagesDontMatchException languageNotFoundHandler(LanguagesDontMatchException ex) {
         return ex;
     }
 }
