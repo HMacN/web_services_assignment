@@ -8,8 +8,10 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
+import voting_system.controller.LoginAttempt;
 import voting_system.model.*;
 
 @Component
@@ -102,5 +104,29 @@ public class VotingServiceImpl implements VotingService
                 throw new LanguageDoesNotExistException();
             }
         }
+    }
+
+    @Override
+    public ResponseEntity<String> logoutMember()
+    {
+        return null;
+    }
+
+    @Override
+    public ResponseEntity<String> attemptMemberLogin(LoginAttempt loginAttempt)
+    {
+        return null;
+    }
+
+    @Override
+    public ResponseEntity<String> castVote(Member member, Candidate candidate)
+    {
+        return null;
+    }
+
+    @Override
+    public ResponseEntity<String> withdrawVote(Member member)
+    {
+        return null;
     }
 }

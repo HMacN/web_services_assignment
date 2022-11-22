@@ -4,6 +4,8 @@ package voting_system.service;
 
 import java.util.List;
 
+import org.springframework.http.ResponseEntity;
+import voting_system.controller.LoginAttempt;
 import voting_system.model.*;
 
 public interface VotingService
@@ -34,4 +36,11 @@ public interface VotingService
     // Removes the welcome for language lang from the database.
     void removeWelcome(String lang) throws LanguageDoesNotExistException;
 
+    ResponseEntity<String> logoutMember();
+
+    ResponseEntity<String> attemptMemberLogin(LoginAttempt loginAttempt);
+
+    ResponseEntity<String> castVote(Member member, Candidate candidate);
+
+    ResponseEntity<String> withdrawVote(Member member);
 }

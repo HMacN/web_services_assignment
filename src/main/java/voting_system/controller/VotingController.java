@@ -4,6 +4,7 @@
 
 package voting_system.controller;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
@@ -19,7 +20,7 @@ public class VotingController
 {
 
     // The VotingController depends on the VotingService, so it needs to keep a reference to it.
-    private VotingService ws;
+    private VotingService votingService;
 
     // The fact that the constructor for the VotingController requires a
     // WelcomService argument tells Spring to auto-configure a VotingService
@@ -27,13 +28,37 @@ public class VotingController
     // and it (a) saves boilerplate code, and (b) makes it easy to swap
     // components. (We can change the VotingService implementation without
     // changing any code in the rest of the system.)
-    public VotingController(VotingService ws) {
-        this.ws = ws;
+    public VotingController(VotingService votingService) {
+        this.votingService = votingService;
     }
+
+    @GetMapping("/member/logout")
+    public ResponseEntity<String> logoutMember() {
+        return this.votingService.logoutMember();
+    }
+
+    @PutMapping("/member/login")
+    public ResponseEntity<String> attemptMemberLogin(@RequestBody LoginAttempt loginAttempt) {
+        //return this.votingService.attemptMemberLogin(loginAttempt);
+        ResponseEntity<String> response = new ResponseEntity<>(loginAttempt.toString(), HttpStatus.ACCEPTED);
+        return response;
+    }
+
+    @PutMapping("/member/vote/{candidate}")
+    public ResponseEntity<String> castVote(@RequestBody Member member, @PathVariable Candidate candidate) {
+        return this.votingService.castVote(member, candidate);
+    }
+
+    @DeleteMapping("/member/vote")
+    public ResponseEntity<String> withdrawVote(@RequestBody Member member) {
+        return this.votingService.withdrawVote(member);
+    }
+
+    // Old stuff
 
     @GetMapping("/ding/{lang}")
     public Welcome getWelcome(@PathVariable String lang, @RequestParam(required=false) String name) {
-        Welcome welcome = ws.getWelcome(lang, name);
+        Welcome welcome = votingService.getWelcome(lang, name);
         if (welcome == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
@@ -42,13 +67,13 @@ public class VotingController
 
     @GetMapping("/ding")
     public List<Welcome> getAllWelcomes() {
-        return ws.getAllWelcomes();
+        return votingService.getAllWelcomes();
     }
 
     @PostMapping("/ding")
     public void postNewWelcome(@RequestBody Welcome newWelcome) throws WelcomeForThisLanguageAlreadyExistsException {
-        ws.addWelcome(newWelcome);
-        ws.addWelcome(newWelcome);
+        votingService.addWelcome(newWelcome);
+        votingService.addWelcome(newWelcome);
     }
 
     @PutMapping("/ding/{lang}")
@@ -58,12 +83,12 @@ public class VotingController
             throw new LanguagesDontMatchException();
         }
 
-        ws.updateWelcome(welcome);
+        votingService.updateWelcome(welcome);
     }
 
     @DeleteMapping("/ding/{lang}")
     public void deleteWelcome(@PathVariable String lang) throws LanguageDoesNotExistException {
-        ws.removeWelcome(lang);
+        votingService.removeWelcome(lang);
     }
 }
 

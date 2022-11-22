@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Client for SWAB Voting Service</title>
+  </head>
+  <body>
+    <div id="login_section">
+      <p>User Name:</p>
+      <input type="text" id="user_name" placeholder="Please enter your name here"/>
+      <p>Membership Number:</p>
+      <input type="text" id="user_number" placeholder="Please enter your membership number here"/>
+      <p>Age:</p>
+      <input type="text" id="user_age" placeholder="Please enter your age here"/>
+      <p>Region:</p>
+      <input type="text" id="user_region" placeholder="Please enter your membership region here"/>
+      <button type="button" onclick="login()">Login</button>
+    </div>
+
+    <div id="output"></div>
+
+    <hr/>
+    <p id="error_display"></p>
+
+    <script>
+      function login() {
+        const user_name = document.getElementById("user_name").value;
+        const user_number = document.getElementById("user_number").value;
+        const user_age = document.getElementById("user_age").value;
+        const user_region = document.getElementById("user_region").value;
+        let url = 'https://localhost:8443/member/login'
+        let login_data = {"user_name":user_name, "user_number":user_number, "user_age":user_age, "user_region":user_region};
+
+        let response_data = transmit_data(url, login_data, 'PUT');
+        document.getElementById("output").value = JSON.stringify(response_data);
+      }
+
+      function hide_div(element_id) {
+        document.getElementById(element_id).hidden = true;
+      }
+
+      function show_div(element_id) {
+        document.getElementById(element_id).hidden = false;
+      }
+
+      function transmit_data(url, data, mode) {
+        return fetch(url, {
+          method: mode,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        })
+                .then( async (response) => {
+                  let data = await response.json();
+                  return JSON.stringify(data);
+                })
+                .catch(error => document.getElementById("error_display").innerHTML = error);
+      }
+    </script>
+  </body>
+</html>

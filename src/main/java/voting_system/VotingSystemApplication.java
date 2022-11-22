@@ -7,10 +7,10 @@ package voting_system;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-
-import voting_system.model.*;
-import voting_system.service.*;
+import voting_system.model.Welcome;
+import voting_system.service.VotingService;
 
 @SpringBootApplication
 public class VotingSystemApplication
@@ -27,12 +27,13 @@ public class VotingSystemApplication
     // to auto-configure and pass a VotingService instance, which initDB()
     // amends by adding more Welcome instances.
     @Bean
-    public CommandLineRunner initDB(VotingService ws) {
+    public CommandLineRunner initDB(VotingService votingService) {
         return (args) -> {
-            ws.addWelcome(new Welcome("en", "Welcome"));
-            ws.addWelcome(new Welcome("fr", "Bienvenue"));
-            ws.addWelcome(new Welcome("de", "Herzlich Willkommen"));
+            votingService.addWelcome(new Welcome("en", "Welcome"));
+            votingService.addWelcome(new Welcome("fr", "Bienvenue"));
+            votingService.addWelcome(new Welcome("de", "Herzlich Willkommen"));
         };
     }
 
 }
+

@@ -2,7 +2,7 @@ package voting_system.service;
 
 public class Member
 {
-    private Bird ballotChoice;
+    private Candidate ballotChoice;
     private String membershipNum;
     private String name;
     private String region;
