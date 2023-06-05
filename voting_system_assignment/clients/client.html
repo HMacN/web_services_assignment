@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Client for SWAB Voting Service</title>
+  </head>
+  <body>
+    <div id="login_section">
+      <hr/>
+      <h2>Log In Section</h2>
+      <p>User Name:</p>
+      <input type="text" id="user_name" placeholder="Please enter your name here"/>
+      <p>Membership Number:</p>
+      <input type="text" id="user_number" placeholder="Please enter your membership number here"/>
+      <p>Age:</p>
+      <input type="text" id="user_age" placeholder="Please enter your age here"/>
+      <p>Region:</p>
+      <input type="text" id="user_region" placeholder="Please enter your membership region here"/>
+      <button type="button" onclick="login()">Login</button>
+      <hr/>
+    </div>
+
+    <div id="logout_section" hidden>
+      <hr/>
+      <h2>Log Out Section</h2>
+      <button type="button" onclick="logout()">Logout</button>
+      <hr/>
+    </div>
+
+    <div id="voting_section" hidden>
+      <hr/>
+      <h2>Voting Section</h2>
+      <p>Your Vote:</p>
+      <label for="current_vote"></label>
+      <select id="current_vote" onchange="vote()">
+        <option>None</option>
+      </select>
+      <p id="vote_record" hidden></p>
+      <p>Candidates:</p>
+      <p id="display_candidates" ></p>
+      <p id="hidden_candidates" hidden></p>
+      <hr/>
+    </div>
+
+    <div id="security_token_section">
+      <hr/>
+      <h2>Security token:</h2>
+      <p id="token"></p>
+      <hr/>
+    </div>
+
+    <div id="HATEOAS_links" > <!--todo re-hide-->
+      <hr/>
+
+      <h2>HATEOAS Links:</h2>
+      <p id="root">https://localhost:8443/member</p>
+      <p id="logout"></p>
+      <p id="voting"></p>
+      <p id="withdraw"></p>
+      <p id="candidate_0"></p>
+      <p id="candidate_1"></p>
+      <p id="candidate_2"></p>
+
+      <hr/>
+    </div>
+
+    <div id="crap_for_testing">
+      <p>RESPONSE OUTPUT FOR TESTING:</p> <!--todo remove-->
+      <p id="output"></p>
+
+      <hr/>
+    </div>
+
+    <script>
+
+      function login() {
+        const user_name = document.getElementById("user_name").value;
+        const user_number = document.getElementById("user_number").value;
+        const user_age = document.getElementById("user_age").value;
+        const user_region = document.getElementById("user_region").value;
+        let url = readFrom("root");
+        let login_data = {"user_name":user_name, "user_number":user_number, "user_age":user_age, "user_region":user_region};
+
+        clear_element("output");
+        fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(login_data),
+        })
+                .then( async (response) => {
+                  let data = await response.json();
+                  console.log("RESPONSE STATUS: " + response.status)
+                  if (response.status === 200) {  // If login successful
+                    writeTo("token", data["token"]);
+                    writeTo("output", JSON.stringify(data));
+
+                    captureHATEOASLinks(data);
+
+                    hide_element("login_section");
+                    show_element("logout_section");
+                    show_element("voting_section");
+                    populateVotingSection();
+                  } else {  // If login unsuccessful
+                    writeTo("output", JSON.stringify(data));
+                  }
+
+                })
+                .catch(error => console.log(error));
+      }
+
+      function logout() {
+        const url = readFrom("logout");
+
+        fetch(url, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorisation': readFrom("token"),
+          },
+          body: JSON.stringify({'message':'this is a request to log out'}),
+        })
+                .then( async (response) => {
+                  let data = await response.json(); //todo this keeps throwing parse errors.
+                  writeTo("output", data["message"]);
+                })
+                .catch(error => console.log(error));
+
+        returnToLogin();
+      }
+
+      function populateVotingSection() {
+        let url = readFrom("voting")
+        fetch(url, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorisation': readFrom("token"),
+          },
+          // GET requests can't have bodies!
+        })
+                .then( async (response) => {
+                  let data = await response.json();
+
+                  if (response.status === 401) {  // If unauthorised, return to login.
+                    returnToLogin();
+                    return;
+                  }
+
+                  captureHATEOASLinks(data);
+
+                  writeTo("output", JSON.stringify(data));
+                  neatlyDisplayCandidateText(JSON.stringify(data["candidates"]));
+                  writeTo("hidden_candidates", JSON.stringify(data["candidates"]))
+
+                  populateVotingSelect();
+                  setCurrentCandidateOnVotingSelect(data)
+                })
+                .catch(error =>
+                        console.log(error)
+                );
+      }
+
+      function vote() {
+        let voteFor = document.getElementById("current_vote").value;
+        let current_vote = readFrom("vote_record");
+
+        if (voteFor === "None" && current_vote !== "") {
+          withdrawVote();
+        } else if (voteFor === "" && current_vote !== "") {
+          withdrawVote();
+        } else if (voteFor !== "" && current_vote === "") {
+          castVote(voteFor);
+        } else if (voteFor !== "" && current_vote !== "" && voteFor !== current_vote) {
+          changeVote(voteFor);
+        }
+
+
+      }
+
+      // Helper functions =====================================
+
+      function withdrawVote() {
+
+        let url = readFrom("withdraw");
+
+        //console.log("URL = " + url) //todo remove
+
+        clear_element("output");
+        fetch(url, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorisation': readFrom("token"),
+          },
+          body: {"message":"This is a request to withdraw a vote."},
+        })
+                .then( async (response) => {
+                  let data = await response.json();
+                  //console.log("RESPONSE STATUS: " + response.status)  //todo remove
+
+                  if (response.status === 401) {  // If unauthorised, return to login.
+                    returnToLogin();
+                    return;
+                  }
+
+                  if (response.status === 200) {  // If vote successful
+                    writeTo("output", JSON.stringify(data));
+                    populateVotingSection();  // Retrieve new voting information.
+                  } else {  // If voting unsuccessful
+                    writeTo("output", JSON.stringify(data));
+                    setCandidateOnVotingSelect(readFrom("vote_record"));    // Set select back to what it was before.
+                  }
+
+                })
+                .catch(error => console.log(error));
+      }
+
+      function castVote(candidate_name) {
+
+        let url = getURLForCandidate(candidate_name);
+
+        //console.log("URL = " + url) //todo remove
+
+        clear_element("output");
+        fetch(url, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorisation': readFrom("token"),
+          },
+          body: {"message":"This is a request to vote for" + candidate_name + "."},
+        })
+                .then( async (response) => {
+                  let data = await response.json();
+                  //console.log("RESPONSE STATUS: " + response.status)  //todo remove
+
+                  if (response.status === 401) {  // If unauthorised, return to login.
+                    returnToLogin();
+                    return;
+                  }
+
+                  if (response.status === 200) {  // If vote successful
+                    writeTo("output", JSON.stringify(data));
+                    populateVotingSection();  // Retrieve new voting information.
+                  } else {  // If voting unsuccessful
+                    writeTo("output", JSON.stringify(data));
+                    setCandidateOnVotingSelect(readFrom("vote_record"));    // Set select back to what it was before.
+                  }
+
+                })
+                .catch(error => console.log(error));
+      }
+
+      function changeVote(candidate_name) {
+        castVote(candidate_name);
+      }
+
+      function setCurrentCandidateOnVotingSelect(data) {
+
+        let current_ballot = data["current_ballot"];
+        let candidate = current_ballot["candidate"];
+
+        setCandidateOnVotingSelect(candidate);
+      }
+
+      function setCandidateOnVotingSelect(candidate_name) {
+        let select = document.getElementById("current_vote");
+
+        if (candidate_name === "") {
+          select.value = "None";
+        } else {
+          select.value = capitalizeFirstLetter(candidate_name);
+        }
+
+        writeTo("vote_record", candidate_name)
+      }
+
+      function populateVotingSelect() {
+
+        clearVotingSelect();
+
+        let candidate_data = readFrom("hidden_candidates");
+        candidate_data = JSON.parse(candidate_data);
+
+        for (let i in candidate_data) {
+          let candidate = candidate_data[i];
+          let candidate_name = candidate["common_name"];
+
+          let option = document.createElement("option");
+          option.text = candidate_name;
+          document.getElementById("current_vote").add(option);
+
+          console.log("ADDING CANDIDATE TO SELECT: " + candidate_name)  //todo remove
+        }
+      }
+
+      function getURLForCandidate(candidate_name) {
+        let url = "";
+        candidate_name = candidate_name.toLowerCase();
+
+        //console.log("URL = " + url) //todo remove
+        //console.log("CANDIDATE = " + candidate_name) //todo remove
+
+
+        for (let i = 0; i < 3; i  = i + 1) {
+          //console.log("I = " + i) //todo remove
+          //console.log("POSS URL = " + readFrom("candidate_" + i)) //todo remove
+
+
+          let possible_url = readFrom("candidate_" + i);
+          if (possible_url.includes(candidate_name)) {
+            url = possible_url;
+          }
+        }
+
+        //console.log("FINAL URL = " + url) //todo remove
+        return url;
+      }
+
+      function clearVotingSelect() {
+        let select = document.getElementById("current_vote");
+        console.log("SELECT LENGTH: " + select.length)
+        let number_of_entries = select.length;
+        for (let i = 0; i < number_of_entries; i = i + 1) {
+          let option = select[select.length - 1];
+          if  (option.innerText !== "None") {
+            console.log("SELECT INDEX: " + i)
+            console.log("REMOVING CANDIDATE FROM SELECT: " + option.innerText); //TODO REMOVE
+            option.remove();
+          }
+        }
+      }
+
+      function returnToLogin() {
+        clearHATEOASLinks();
+        clearVotingSelect();
+
+        clear_element("token");
+        clear_element("hidden_candidates")
+        clear_element("display_candidates")
+        clear_element("output");
+
+        hide_element("logout_section");
+        hide_element("voting_section");
+
+        show_element("login_section");
+      }
+
+      function captureHATEOASLinks(data) {
+
+        let links = data["_links"];
+        let relLinks = links["related"];
+        for (let i in relLinks) {
+          let name = relLinks[i]["name"];
+          let link = relLinks[i]["href"];
+
+          if (name === "logout") {
+            writeTo("logout", link);
+          }
+
+          if (name === "vote") {
+            writeTo("voting", link);
+          }
+
+          if (name === "candidate_0") {
+            writeTo("candidate_0", link);
+          }
+
+          if (name === "candidate_1") {
+            writeTo("candidate_1", link);
+          }
+
+          if (name === "candidate_2") {
+            writeTo("candidate_2", link);
+          }
+
+          if (name === "withdraw") {
+            writeTo("withdraw", link);
+          }
+        }
+      }
+
+      function clearHATEOASLinks() {
+        clear_element("logout");
+        clear_element("voting");
+        clear_element("withdraw");
+        clear_element("candidate_0");
+        clear_element("candidate_1");
+        clear_element("candidate_2");
+      }
+
+      function neatlyDisplayCandidateText(candidate_text) {
+        candidate_text = candidate_text.replaceAll("\",", "\",<br/>");
+        candidate_text = candidate_text.replaceAll("},{", "}<br/><br/>{");
+        document.getElementById("display_candidates").innerHTML = candidate_text;
+      }
+
+      function writeTo(element, text) {
+        document.getElementById(element).innerText = text;
+      }
+
+      function readFrom(element) {
+        return document.getElementById(element).innerText;
+      }
+
+      function clear_element(element_id) {
+        writeTo(element_id, "");
+      }
+
+      function hide_element(element_id) {
+        document.getElementById(element_id).hidden = true;
+      }
+
+      function show_element(element_id) {
+        document.getElementById(element_id).hidden = false;
+      }
+
+      function capitalizeFirstLetter(string) {
+        return string.charAt(0).toUpperCase() + string.slice(1);
+      }
+    </script>
+  </body>
+</html>

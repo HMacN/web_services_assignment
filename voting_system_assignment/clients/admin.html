@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Admin Client for SWAB Voting Service</title>
+  </head>
+  <body>
+    <div id="login_section">
+      <hr/>
+      <h2>Log In Section</h2>
+      <p>Enter Admin Password:</p>
+      <input type="text" id="admin_pass" placeholder="Please enter your admin password here"/> <!--todo make this admin pass-->
+      <button type="button" onclick="login()">Login</button>
+      <hr/>
+    </div>
+
+    <div id="logout_section" hidden>
+      <hr/>
+      <h2>Log Out Section</h2>
+      <button type="button" onclick="logout()">Logout</button>
+      <hr/>
+    </div>
+
+    <div id="voting_section" hidden>
+      <hr/>
+      <h2>Voting Section</h2>
+      <button type="button" onclick="tally()">Tally Votes</button>
+      <button type="button" onclick="open_voting()">Open Voting</button>
+      <button type="button" onclick="close_voting()">Close Voting</button>
+      <p id="tally_data"></p>
+      <hr/>
+    </div>
+
+    <div id="security_token_section">
+      <hr/>
+      <h2>Security token:</h2>
+      <p id="token"></p>
+      <hr/>
+    </div>
+
+    <div id="HATEOAS_links" hidden>
+      <hr/>
+
+      <h2>HATEOAS Links:</h2>
+      <p id="root">https://localhost:8443/admin</p>
+      <p id="logout"></p>
+      <p id="tally"></p>
+      <p id="open_voting"></p>
+      <p id="close_voting"></p>
+
+      <hr/>
+    </div>
+
+    <div id="crap_for_testing" hidden>
+      <p>RESPONSE OUTPUT FOR TESTING:</p> <!--todo remove-->
+      <p id="output"></p>
+
+      <hr/>
+    </div>
+
+    <script>
+
+      function close_voting() {
+        const url = readFrom("close_voting");
+
+        fetch(url, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorisation': readFrom("token"),
+          },
+          body: JSON.stringify({'message':'This is a request to close voting'}),
+        })
+                .then( async (response) => {
+                  let data = await response.json(); //todo this keeps throwing parse errors.
+                  writeTo("output", data["message"]);
+                })
+                .catch(error => console.log(error));
+      }
+
+      function open_voting() {
+        const url = readFrom("open_voting");
+
+        fetch(url, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorisation': readFrom("token"),
+          },
+          body: JSON.stringify({'message':'This is a request to open voting'}),
+        })
+                .then( async (response) => {
+                  let data = await response.json(); //todo this keeps throwing parse errors.
+                  writeTo("output", data["message"]);
+                })
+                .catch(error => console.log(error));
+      }
+
+      function tally() {
+        const url = readFrom("tally");
+
+        fetch(url, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorisation': readFrom("token"),
+          },
+          // Get requests may not have a body.
+        })
+                .then( async (response) => {
+                  let data = await response.json(); //todo this keeps throwing parse errors.
+
+                  if (response.status === 401) {  // If unauthorised, return to login.
+                    returnToLogin();
+                    return;
+                  }
+
+                  neatlyDisplayCandidateText(data["tally_data"]);
+                })
+                .catch(error => console.log(error));
+      }
+
+      function login() {
+        const admin_pass = document.getElementById("admin_pass").value;
+        let url = readFrom("root");
+        let payload = {"admin_pass": admin_pass, "message": "This is a request to log in as an admin."}
+
+        //todo remove
+        console.log(JSON.stringify(payload));
+
+        clear_element("output");
+        fetch(url, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        })
+                .then( async (response) => {
+                  let data = await response.json();
+                  console.log("RESPONSE STATUS: " + response.status)
+                  if (response.status === 200) {  // If login successful
+                    writeTo("token", data["token"]);
+                    writeTo("output", JSON.stringify(data));
+
+                    captureHATEOASLinks(data);
+
+                    hide_element("login_section");
+                    show_element("logout_section");
+                    show_element("voting_section");
+                  } else {  // If login unsuccessful
+                    writeTo("output", JSON.stringify(data));
+                  }
+
+                })
+                .catch(error => console.log(error));
+      }
+
+      function logout() {
+        const url = readFrom("logout");
+
+        fetch(url, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorisation': readFrom("token"),
+          },
+          body: JSON.stringify({'message':'this is a request to log out'}),
+        })
+                .then( async (response) => {
+                  let data = await response.json(); //todo this keeps throwing parse errors.
+                  writeTo("output", data["message"]);
+                })
+                .catch(error => console.log(error));
+
+        returnToLogin();
+      }
+
+      // Helper functions =====================================
+
+      function returnToLogin() {
+        clearHATEOASLinks();
+
+        clear_element("token");
+        clear_element("tally_data")
+        clear_element("output");
+
+        hide_element("logout_section");
+        hide_element("voting_section");
+
+        show_element("login_section");
+      }
+
+      function captureHATEOASLinks(data) {
+
+        let links = data["_links"];
+        let relLinks = links["related"];
+        for (let i in relLinks) {
+          let name = relLinks[i]["name"];
+          let link = relLinks[i]["href"];
+
+          if (name === "logout") {
+            writeTo("logout", link);
+          }
+
+          if (name === "tally") {
+            writeTo("tally", link);
+          }
+
+          if (name === "open_voting") {
+            writeTo("open_voting", link);
+          }
+
+          if (name === "close_voting") {
+            writeTo("close_voting", link);
+          }
+        }
+      }
+
+      function clearHATEOASLinks() {
+        clear_element("logout");
+        clear_element("tally");
+        clear_element("open_voting");
+        clear_element("close_voting");
+
+      }
+
+      function neatlyDisplayCandidateText(candidate_text) {
+        candidate_text = candidate_text.replaceAll("\",", "\",<br/>");
+        candidate_text = candidate_text.replaceAll("},{", "}<br/><br/>{");
+        document.getElementById("tally_data").innerHTML = candidate_text;
+      }
+
+      function writeTo(element, text) {
+        document.getElementById(element).innerText = text;
+      }
+
+      function readFrom(element) {
+        return document.getElementById(element).innerText;
+      }
+
+      function clear_element(element_id) {
+        writeTo(element_id, "");
+      }
+
+      function hide_element(element_id) {
+        document.getElementById(element_id).hidden = true;
+      }
+
+      function show_element(element_id) {
+        document.getElementById(element_id).hidden = false;
+      }
+    </script>
+  </body>
+</html>
